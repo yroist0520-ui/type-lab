@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.local
+.npm-cache
+.screenshots
+.trae-html-share-packages
+.DS_Store
+*.log
