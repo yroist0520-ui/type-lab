@@ -821,3 +821,298 @@
   gap: 2px;
   flex: none;
 }
+
+/* ---------- 移动端：画布全屏 + 底部面板 ---------- */
+
+.mobile-nav,
+.sheet__grip {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .studio {
+    grid-template-rows: var(--topbar-h) minmax(0, 1fr) auto;
+    height: 100dvh;
+  }
+
+  .topbar {
+    gap: 4px;
+    padding: 0 6px;
+  }
+
+  .topbar__brand {
+    padding-right: 8px;
+    margin-right: 0;
+  }
+
+  .topbar__brand span {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+
+  .topbar__name {
+    width: 86px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .topbar__sep,
+  .topbar__save,
+  .topbar__zoom {
+    display: none;
+  }
+
+  .topbar .btn--icon {
+    width: 32px;
+    height: 32px;
+    flex: none;
+  }
+
+  .topbar .btn--sm {
+    height: 32px;
+    padding: 0 7px;
+    font-size: 11px;
+    flex: none;
+  }
+
+  .studio__body {
+    display: block;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .canvas-area {
+    position: absolute;
+    inset: 0;
+  }
+
+  .canvas-area__stage {
+    touch-action: none;
+  }
+
+  .panel--left,
+  .panel--right {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    height: min(46dvh, 420px);
+    z-index: 20;
+    border: 0;
+    border-top: 1px solid var(--line-strong);
+    transform: translateY(101%);
+    visibility: hidden;
+    transition: transform 0.22s ease, visibility 0.22s;
+    box-shadow: 0 -14px 32px rgba(17, 17, 17, 0.1);
+  }
+
+  .studio__body.is-left-sheet .panel--left,
+  .studio__body.is-props-sheet .panel--right {
+    transform: none;
+    visibility: visible;
+  }
+
+  .sheet__grip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 100%;
+    height: 20px;
+    border: 0;
+    background: var(--surface);
+    cursor: pointer;
+  }
+
+  .sheet__grip span {
+    width: 34px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+
+  .panel--left .panel__tabs {
+    display: none;
+  }
+
+  .panel__tab {
+    height: 40px;
+    font-size: 11px;
+  }
+
+  .panel__head {
+    height: 40px;
+  }
+
+  .panel__scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .layer-row {
+    height: 44px;
+  }
+
+  .layer-row__tools {
+    opacity: 1;
+  }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+
+  .chip {
+    height: 34px;
+    font-size: 12px;
+  }
+
+  .char-chip {
+    min-width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  .input,
+  .select {
+    height: 36px;
+  }
+
+  .btn {
+    height: 34px;
+  }
+
+  .btn--sm {
+    height: 32px;
+  }
+
+  .btn--icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .swatch {
+    width: 26px;
+    height: 26px;
+  }
+
+  .section {
+    padding: 12px;
+  }
+
+  .canvas-tag {
+    top: 8px;
+    left: 8px;
+  }
+
+  .canvas-hud {
+    left: 8px;
+    bottom: 8px;
+    padding: 2px;
+  }
+
+  .canvas-hud .btn--icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .canvas-hud .btn--sm {
+    height: 36px;
+    padding: 0 10px;
+  }
+
+  .canvas-hud__zoom {
+    font-size: 11px;
+  }
+
+  .mobile-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    z-index: 40;
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-nav__item {
+    min-height: 48px;
+    border: 0;
+    border-top: 2px solid transparent;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+
+  .mobile-nav__item.is-active {
+    color: var(--ink);
+    border-top-color: var(--accent);
+  }
+
+  .mobile-nav__item:active {
+    background: var(--surface-sunken);
+  }
+
+  .modal {
+    width: calc(100vw - 24px);
+    max-height: 82dvh;
+  }
+
+  .modal--wide {
+    width: calc(100vw - 24px);
+  }
+
+  .export-preview {
+    max-height: 160px;
+  }
+
+  .export-preview img {
+    max-height: 140px;
+  }
+}
+
+/* 超窄屏：压缩顶栏，保留返回首页 */
+@media (max-width: 380px) {
+  .topbar__brand {
+    padding: 0 6px 0 2px;
+  }
+
+  .topbar__brand span {
+    display: none;
+  }
+
+  .topbar__brand::before {
+    content: '←';
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  .topbar .btn--sm {
+    padding: 0 5px;
+  }
+}
+
+/* 横屏手机：面板改为右侧抽屉，避免高度不足 */
+@media (max-width: 900px) and (max-height: 500px) {
+  .panel--left,
+  .panel--right {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: 0;
+    width: min(360px, 82vw);
+    height: auto;
+    border-top: 0;
+    border-left: 1px solid var(--line-strong);
+    transform: translateX(101%);
+    box-shadow: -14px 0 32px rgba(17, 17, 17, 0.1);
+  }
+
+  .studio__body.is-left-sheet .panel--left,
+  .studio__body.is-props-sheet .panel--right {
+    transform: none;
+  }
+}

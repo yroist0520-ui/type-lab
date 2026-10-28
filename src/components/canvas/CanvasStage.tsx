@@ -165,6 +165,100 @@ export default function CanvasStage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // 触屏手势：双指缩放与平移，空白处单指平移
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+    const gesture = {
+      mode: 'none' as 'none' | 'pinch' | 'pan',
+      lastDist: 0,
+      lastCenterX: 0,
+      lastCenterY: 0,
+      lastX: 0,
+      lastY: 0,
+    };
+
+    const distance = (touches: TouchList) =>
+      Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+    const center = (touches: TouchList) => ({
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2,
+    });
+
+    const start = (event: TouchEvent) => {
+      if (event.touches.length >= 2) {
+        event.preventDefault();
+        const point = center(event.touches);
+        gesture.mode = 'pinch';
+        gesture.lastDist = distance(event.touches);
+        gesture.lastCenterX = point.x;
+        gesture.lastCenterY = point.y;
+        return;
+      }
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      gesture.mode = 'none';
+      gesture.lastX = touch.clientX;
+      gesture.lastY = touch.clientY;
+      const rect = element.getBoundingClientRect();
+      const hit = stageRef.current?.getIntersection({
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+      });
+      if (!hit) {
+        gesture.mode = 'pan';
+        useEditorStore.getState().clearSelection();
+      }
+    };
+
+    const move = (event: TouchEvent) => {
+      const state = useEditorStore.getState();
+      if (event.touches.length >= 2) {
+        event.preventDefault();
+        const point = center(event.touches);
+        const dist = distance(event.touches);
+        if (gesture.mode !== 'pinch' || gesture.lastDist === 0) {
+          gesture.mode = 'pinch';
+          gesture.lastDist = dist;
+          gesture.lastCenterX = point.x;
+          gesture.lastCenterY = point.y;
+          return;
+        }
+        const rect = element.getBoundingClientRect();
+        state.zoomAt(dist / gesture.lastDist, { x: point.x - rect.left, y: point.y - rect.top });
+        state.panBy(point.x - gesture.lastCenterX, point.y - gesture.lastCenterY);
+        gesture.lastDist = dist;
+        gesture.lastCenterX = point.x;
+        gesture.lastCenterY = point.y;
+        return;
+      }
+      if (gesture.mode !== 'pan' || event.touches.length !== 1) return;
+      event.preventDefault();
+      const touch = event.touches[0];
+      state.panBy(touch.clientX - gesture.lastX, touch.clientY - gesture.lastY);
+      gesture.lastX = touch.clientX;
+      gesture.lastY = touch.clientY;
+    };
+
+    const end = (event: TouchEvent) => {
+      if (event.touches.length < 2) {
+        gesture.mode = 'none';
+        gesture.lastDist = 0;
+      }
+    };
+
+    element.addEventListener('touchstart', start, { passive: false });
+    element.addEventListener('touchmove', move, { passive: false });
+    element.addEventListener('touchend', end);
+    element.addEventListener('touchcancel', end);
+    return () => {
+      element.removeEventListener('touchstart', start);
+      element.removeEventListener('touchmove', move);
+      element.removeEventListener('touchend', end);
+      element.removeEventListener('touchcancel', end);
+    };
+  }, []);
+
   const handleWheel = (event: Konva.KonvaEventObject<WheelEvent>) => {
     event.evt.preventDefault();
     const rect = containerRef.current?.getBoundingClientRect();
@@ -225,6 +319,11 @@ export default function CanvasStage() {
 
   const transparent = canvas.background.type === 'transparent';
   const activeScale = viewport.scale > 0 ? viewport.scale : 1;
+  // 小屏/触屏下放大控制点，便于手指拖动
+  const compact = stageSize.width > 0 && stageSize.width < 900;
+  const anchorSize = compact ? 16 : 8;
+  const anchorStrokeWidth = compact ? 2 : 1.5;
+  const rotateAnchorOffset = compact ? 32 : 26;
 
   return (
     <div className="canvas-area">
@@ -275,13 +374,13 @@ export default function CanvasStage() {
               rotateEnabled
               ignoreStroke
               borderStroke="#ff3b00"
-              borderStrokeWidth={1.5 / activeScale}
+              borderStrokeWidth={compact ? 2 : 1.5 / activeScale}
               anchorFill="#ffffff"
               anchorStroke="#ff3b00"
-              anchorStrokeWidth={1.5 / activeScale}
-              anchorSize={8 / activeScale}
+              anchorStrokeWidth={anchorStrokeWidth}
+              anchorSize={anchorSize}
               anchorCornerRadius={1}
-              rotateAnchorOffset={26 / activeScale}
+              rotateAnchorOffset={rotateAnchorOffset}
               onTransformStart={handleTransformStart}
               onTransformEnd={handleTransformEnd}
             />
@@ -297,7 +396,7 @@ export default function CanvasStage() {
         <div className="canvas-empty">
           <div className="canvas-empty__box">
             <div className="mono">CANVAS</div>
-            <p>在左侧输入文字并添加到画布开始设计</p>
+            <p>在面板中输入文字并添加到画布开始设计</p>
           </div>
         </div>
       )}
